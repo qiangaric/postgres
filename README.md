@@ -7,4 +7,5 @@ vscode test、
 test
 wrewer
 werer
+weere
 ```
