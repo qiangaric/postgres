@@ -4910,13 +4910,6 @@ StartupXLOG(void)
 		   CurrentResourceOwner == AuxProcessResourceOwner);
 	CurrentResourceOwner = AuxProcessResourceOwner;
 
-		if (!guc_demo)
-	{
-		ereport(LOG,(errmsg("hello, guc demo enabled")));
-	}else{
-		ereport(LOG,(errmsg("hello, guc demo disabled")));
-	}
-	
 	/*
 	 * Check that contents look valid.
 	 */

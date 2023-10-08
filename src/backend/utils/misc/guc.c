@@ -1022,16 +1022,6 @@ static struct config_bool ConfigureNamesBool[] =
 		true,
 		NULL, NULL, NULL
 	},
-		{
-		{"guc_demo", PGC_USERSET, DEVELOPER_OPTIONS,
-			gettext_noop("guc_demo"),
-			NULL,
-			GUC_NOT_IN_SAMPLE
-		},
-		&guc_demo,
-		false,
-		NULL, NULL, NULL
-	},
 	{
 		{"enable_indexscan", PGC_USERSET, QUERY_TUNING_METHOD,
 			gettext_noop("Enables the planner's use of index-scan plans."),
