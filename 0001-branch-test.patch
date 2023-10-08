@@ -1,0 +1,33 @@
+From 8eca98ea99e28b8dd90dc43e33291233c06a5873 Mon Sep 17 00:00:00 2001
+From: qiangaric <gaojinq@126.com>
+Date: Sat, 7 Oct 2023 20:03:08 +0800
+Subject: [PATCH] branch test
+
+---
+ src/backend/utils/misc/guc.c | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
+
+diff --git a/src/backend/utils/misc/guc.c b/src/backend/utils/misc/guc.c
+index e9084f4..23082c0 100644
+--- a/src/backend/utils/misc/guc.c
++++ b/src/backend/utils/misc/guc.c
+@@ -1021,6 +1021,16 @@ static struct config_bool ConfigureNamesBool[] =
+ 		&enable_seqscan,
+ 		true,
+ 		NULL, NULL, NULL
++	},
++		{
++		{"guc_demo", PGC_USERSET, DEVELOPER_OPTIONS,
++			gettext_noop("guc_demo"),
++			NULL,
++			GUC_NOT_IN_SAMPLE
++		},
++		&guc_demo,
++		false,
++		NULL, NULL, NULL
+ 	},
+ 	{
+ 		{"enable_indexscan", PGC_USERSET, QUERY_TUNING_METHOD,
+-- 
+2.38.1.windows.1
+
