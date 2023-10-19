@@ -552,17 +552,17 @@ catalog_read_ini(const char *path)
 	if (start_lsn)
 	{
 		uint32 xlogid, xrecoff;
-		printf("backup->start_lsn ===================== %X \n",backup->start_lsn);
+		// printf("backup->start_lsn ===================== %X \n",backup->start_lsn);
 		if (sscanf(start_lsn, "%X/%X", &xlogid, &xrecoff) == 2)
 		{
-			printf("&xlogid ========== %lu \n",&xlogid);
-			printf("&xlogid XXXX ========== %X \n",&xlogid);
-			printf("&xrecoff ========== %lu \n",&xrecoff);
-			printf("&xrecoff XXXX ========== %X \n",&xrecoff);
+			// printf("&xlogid ========== %lu \n",&xlogid);
+			// printf("&xlogid XXXX ========== %X \n",&xlogid);
+			// printf("&xrecoff ========== %lu \n",&xrecoff);
+			// printf("&xrecoff XXXX ========== %X \n",&xrecoff);
 			//	
 			backup->start_lsn = (XLogRecPtr)((uint64)xlogid << 32) | xrecoff;
-			printf("backup->start_lsn ========== %lu \n",backup->start_lsn);
-			printf("backup->start_lsnxxxxxxxxxxxx ========== %X \n",backup->start_lsn);
+			// printf("backup->start_lsn ========== %lu \n",backup->start_lsn);
+			// printf("backup->start_lsnxxxxxxxxxxxx ========== %X \n",backup->start_lsn);
 		}
 			
 		else

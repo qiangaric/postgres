@@ -1617,6 +1617,13 @@ backup_files(const char *from_root,
 			}
 
 			/* copy the file into backup */
+			// printf("from_root  ======================  %s \n",from_root);
+			// printf("to_root  =====================  %s  \n",to_root);
+			/**
+			 * 如果是数据库文件，执行backup_data_file，非数据文件直接copy
+			 * backup_data_file 数据文件存在，
+			 * copy_file 进行copy
+			*/
 			if (!(file->is_datafile
 					  ? backup_data_file(from_root, to_root, file, lsn, compress, prev_file_not_found)
 					  : copy_file(from_root, to_root, file,
@@ -2076,6 +2083,9 @@ snapshot_cleanup(bool fatal, void *userdata)
 /*
  * Append files to the backup list array.
  */
+/**
+ * 数据文件列表
+*/
 static void
 add_files(parray *files, const char *root, bool add_root, bool is_pgdata)
 {
@@ -2104,9 +2114,15 @@ add_files(parray *files, const char *root, bool add_root, bool is_pgdata)
 			!path_is_prefix_of_path("base", relative) &&
 			!path_is_prefix_of_path("global", relative) &&
 			!path_is_prefix_of_path("pg_tblspc", relative))
+			/**
+			 * 如果不是base、global、pg_tblspc开头，跳出本次循环
+			*/
 			continue;
 
 		/* name of data file start with digit */
+		/**
+		 * 判断是否是数据文件，以数字开头的文件
+		*/
 		fname = last_dir_separator(relative);
 		if (fname == NULL)
 			fname = relative;

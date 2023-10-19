@@ -28,21 +28,21 @@
 #include <zlib.h>
 
 #define zlibOutSize 4096
-#define zlibInSize  4096
+#define zlibInSize 4096
 
 static int doDeflate(z_stream *zp, size_t in_size, size_t out_size, void *inbuf,
-	void *outbuf, FILE *in, FILE *out, pg_crc32c *crc, size_t *write_size,
-	int flash);
-static int doInflate(z_stream *zp, size_t in_size, size_t out_size,void *inbuf,
-	void *outbuf, FILE *in, FILE *out, pg_crc32c *crc, size_t *read_size);
+					 void *outbuf, FILE *in, FILE *out, pg_crc32c *crc, size_t *write_size,
+					 int flash);
+static int doInflate(z_stream *zp, size_t in_size, size_t out_size, void *inbuf,
+					 void *outbuf, FILE *in, FILE *out, pg_crc32c *crc, size_t *read_size);
 static BlockNumber figure_out_segno(char *filepath);
 
 static int
 doDeflate(z_stream *zp, size_t in_size, size_t out_size, void *inbuf,
-	void *outbuf, FILE *in, FILE *out, pg_crc32c *crc, size_t *write_size,
-	int flash)
+		  void *outbuf, FILE *in, FILE *out, pg_crc32c *crc, size_t *write_size,
+		  int flash)
 {
-	int	status;
+	int status;
 
 	zp->next_in = inbuf;
 	zp->avail_in = in_size;
@@ -56,8 +56,8 @@ doDeflate(z_stream *zp, size_t in_size, size_t out_size, void *inbuf,
 				fclose(in);
 			fclose(out);
 			ereport(FATAL,
-				(errcode(ERROR_INTERRUPTED),
-				 errmsg("interrupted during deflate")));
+					(errcode(ERROR_INTERRUPTED),
+					 errmsg("interrupted during deflate")));
 		}
 
 		status = deflate(zp, flash);
@@ -68,19 +68,19 @@ doDeflate(z_stream *zp, size_t in_size, size_t out_size, void *inbuf,
 				fclose(in);
 			fclose(out);
 			ereport(ERROR,
-				(errcode(ERROR_SYSTEM),
-				 errmsg("could not compress data: %s", zp->msg)));
+					(errcode(ERROR_SYSTEM),
+					 errmsg("could not compress data: %s", zp->msg)));
 		}
 
-		if (fwrite(outbuf, 1, out_size - zp->avail_out, out) !=
-				out_size - zp->avail_out)
+		if ((outbuf, 1, out_size - zp->avail_out, out) !=
+			out_size - zp->avail_out)
 		{
 			if (in)
 				fclose(in);
 			fclose(out);
 			ereport(ERROR,
-				(errcode(ERROR_SYSTEM),
-				 errmsg("could not write file: %s", strerror(errno))));
+					(errcode(ERROR_SYSTEM),
+					 errmsg("could not write file: %s", strerror(errno))));
 		}
 
 		/* update CRC */
@@ -96,10 +96,10 @@ doDeflate(z_stream *zp, size_t in_size, size_t out_size, void *inbuf,
 }
 
 static int
-doInflate(z_stream *zp, size_t in_size, size_t out_size,void *inbuf,
-	void *outbuf, FILE *in, FILE *out, pg_crc32c *crc, size_t *read_size)
+doInflate(z_stream *zp, size_t in_size, size_t out_size, void *inbuf,
+		  void *outbuf, FILE *in, FILE *out, pg_crc32c *crc, size_t *read_size)
 {
-	int	status = Z_OK;
+	int status = Z_OK;
 
 	zp->next_out = outbuf;
 	zp->avail_out = out_size;
@@ -109,13 +109,13 @@ doInflate(z_stream *zp, size_t in_size, size_t out_size,void *inbuf,
 	{
 		if (interrupted)
 			ereport(FATAL,
-				(errcode(ERROR_INTERRUPTED),
-				 errmsg("interrupted during inflate")));
+					(errcode(ERROR_INTERRUPTED),
+					 errmsg("interrupted during inflate")));
 
 		/* input buffer becomes empty, read it from a file. */
 		if (zp->avail_in == 0)
 		{
-			size_t	read_len;
+			size_t read_len;
 
 			read_len = fread(inbuf, 1, in_size, in);
 
@@ -128,8 +128,8 @@ doInflate(z_stream *zp, size_t in_size, size_t out_size,void *inbuf,
 					fclose(in);
 					fclose(out);
 					ereport(ERROR,
-						(errcode(ERROR_CORRUPTED),
-						 errmsg("could not read compress file: %s", strerror(errno_tmp))));
+							(errcode(ERROR_CORRUPTED),
+							 errmsg("could not read compress file: %s", strerror(errno_tmp))));
 				}
 
 				if (read_len == 0 && *read_size == 0)
@@ -161,8 +161,8 @@ doInflate(z_stream *zp, size_t in_size, size_t out_size,void *inbuf,
 			fclose(in);
 			fclose(out);
 			ereport(ERROR,
-				(errcode(ERROR_SYSTEM),
-				 errmsg("could not uncompress data: %s", strerror(errno))));
+					(errcode(ERROR_SYSTEM),
+					 errmsg("could not uncompress data: %s", strerror(errno))));
 		}
 	}
 
@@ -179,13 +179,13 @@ doInflate(z_stream *zp, size_t in_size, size_t out_size,void *inbuf,
 typedef union DataPage
 {
 	/* Page header for quick access */
-	PageHeaderData		header;
+	PageHeaderData header;
 
 	/*
 	 * The whole page (execpt the portion deemed unnecessary (hole), all of
 	 * it is written to the backup as is.
 	 */
-	char				data[BLCKSZ];
+	char data[BLCKSZ];
 } DataPage;
 
 /*
@@ -208,15 +208,23 @@ parse_page(int blkno,
 		   uint16 *offset,
 		   uint16 *length)
 {
-	const PageHeaderData *header = (PageHeaderData *) &page->header;
-	const Page pagedata = (Page) page->data;
+	const PageHeaderData *header = (PageHeaderData *)&page->header;
+	const Page pagedata = (Page)page->data;
 
 	/*
 	 * Combine 2-part LSN into a single 64-bit value to match the new
 	 * XLogRecPtr definition in 9.3+
 	 */
 	*lsn = PageXLogRecPtrGet(header->pd_lsn);
-
+	/**
+	 *如果block已经满，返回false ,直接进行copy
+	 */
+	// printf("PageGetPageSize(header) === %d \n",PageGetPageSize(header));
+	// printf("PageGetPageLayoutVersion(header) = %d \n",PageGetPageLayoutVersion(header));
+	// printf("header->pd_lower = %d \n",header->pd_lower);
+	// printf("header->pd_upper = %d \n",header->pd_upper);
+	// printf("header->pd_special = %d \n",header->pd_special);
+	// printf("BLCKSZ = %d \n",BLCKSZ);
 	if (PageGetPageSize(header) == BLCKSZ &&
 		PageGetPageLayoutVersion(header) == PG_PAGE_LAYOUT_VERSION &&
 		(header->pd_flags & ~PD_VALID_FLAG_BITS) == 0 &&
@@ -236,15 +244,18 @@ parse_page(int blkno,
 			IS_SPGIST_INDEX_METAPAGE(blkno, pagedata))
 		{
 			*offset = *length = 0;
+			printf("false 247 = %d \n",false);
 			return false;
 		}
 
 		*offset = header->pd_lower;
 		*length = header->pd_upper - header->pd_lower;
+		printf("true 253 = %d \n",true);
 		return true;
 	}
-	
+
 	*offset = *length = 0;
+	printf("false 258 = %d \n",true);
 	return false;
 }
 
@@ -254,27 +265,26 @@ parse_page(int blkno,
  * If lsn is not NULL, pages only which are modified after the lsn will be
  * copied.
  */
-bool
-backup_data_file(const char *from_root,
-					const char *to_root,
-					pgFile *file,
-					const XLogRecPtr *lsn,
-					bool compress,
-					bool prev_file_not_found)
+bool backup_data_file(const char *from_root,
+					  const char *to_root,
+					  pgFile *file,
+					  const XLogRecPtr *lsn,
+					  bool compress,
+					  bool prev_file_not_found)
 {
-	char				to_path[MAXPGPATH];
-	FILE			   *in;
-	FILE			   *out;
-	BackupPageHeader	header;
-	DataPage			page;		/* used as read buffer */
-	BlockNumber			blknum;
-	BlockNumber			segno;
-	size_t				read_len;
-	int					errno_tmp;
-	pg_crc32c			crc;
+	char to_path[MAXPGPATH];
+	FILE *in;
+	FILE *out;
+	BackupPageHeader header;
+	DataPage page; /* used as read buffer */
+	BlockNumber blknum;
+	BlockNumber segno;
+	size_t read_len;
+	int errno_tmp;
+	pg_crc32c crc;
 #ifdef HAVE_LIBZ
-	z_stream			z;
-	char				outbuf[zlibOutSize];
+	z_stream z;
+	char outbuf[zlibOutSize];
 #endif
 	PGRMAN_INIT_CRC32(crc);
 
@@ -283,6 +293,7 @@ backup_data_file(const char *from_root,
 	file->write_size = 0;
 
 	/* open backup mode file for read */
+	printf("source data file ========== %s \n ", file->path);
 	in = fopen(file->path, "r");
 
 	if (in == NULL)
@@ -295,9 +306,9 @@ backup_data_file(const char *from_root,
 			return false;
 
 		ereport(ERROR,
-			(errcode(ERROR_SYSTEM),
-			 errmsg("could not open backup mode file \"%s\": %s",
-				file->path, strerror(errno))));
+				(errcode(ERROR_SYSTEM),
+				 errmsg("could not open backup mode file \"%s\": %s",
+						file->path, strerror(errno))));
 	}
 
 	/* open backup file for write  */
@@ -305,14 +316,15 @@ backup_data_file(const char *from_root,
 		snprintf(to_path, lengthof(to_path), "%s/tmp", backup_path);
 	else
 		join_path_components(to_path, to_root, file->path + strlen(from_root) + 1);
+	printf("to_path ========== %s \n ", to_path);
 	out = fopen(to_path, "w");
 	if (out == NULL)
 	{
 		int errno_tmp = errno;
 		fclose(in);
 		ereport(ERROR,
-			(errcode(ERROR_SYSTEM),
-			 errmsg("could not open backup file \"%s\": %s", to_path, strerror(errno_tmp))));
+				(errcode(ERROR_SYSTEM),
+				 errmsg("could not open backup file \"%s\": %s", to_path, strerror(errno_tmp))));
 	}
 
 #ifdef HAVE_LIBZ
@@ -327,12 +339,12 @@ backup_data_file(const char *from_root,
 			fclose(in);
 			fclose(out);
 			ereport(ERROR,
-				(errcode(ERROR_SYSTEM),
-				 errmsg("could not initialize compression library: %s", z.msg)));
+					(errcode(ERROR_SYSTEM),
+					 errmsg("could not initialize compression library: %s", z.msg)));
 		}
 
 		z.avail_in = 0;
-		z.next_out = (void *) outbuf;
+		z.next_out = (void *)outbuf;
 		z.avail_out = zlibOutSize;
 	}
 #endif
@@ -348,21 +360,29 @@ backup_data_file(const char *from_root,
 		segno = 0;
 
 	/* read each page and write the page excluding hole */
+	/**
+	 * 根据数据块数量循环
+	 */
 	for (blknum = 0;
 		 (read_len = fread(&page, 1, sizeof(page), in)) == sizeof(page);
 		 ++blknum)
 	{
-		XLogRecPtr	page_lsn;
-		int		upper_offset;
-		int		upper_length;
+		XLogRecPtr page_lsn;
+		int upper_offset;
+		int upper_length;
 
 		header.block = blknum;
 		header.endpoint = false;
+
+		printf("numbers nth ===================== %d \n",blknum);
 
 		/*
 		 * If a invalid data page was found, fallback to simple copy to ensure
 		 * all pages in the file don't have BackupPageHeader.
 		 */
+		/**
+		 * 如果不是数据文件直接copy
+		*/
 		if (!parse_page(blknum, &page, &page_lsn, &header.hole_offset,
 						&header.hole_length))
 		{
@@ -371,14 +391,28 @@ backup_data_file(const char *from_root,
 			fclose(in);
 			fclose(out);
 			file->is_datafile = false;
+			/**
+			 * 目标端不存在，进行完全copy
+			 * pg_statistic 2619
+			 */
+			printf("data file simple copy =========== %s \n",to_path);
 			return copy_file(from_root, to_root, file,
 							 compress ? COMPRESSION : NO_COMPRESSION);
 		}
-
+		// printf("read_len =========== %ld \n",read_len);
+		/**
+		 * 每次读取8192字节
+		 */
 		file->read_size += read_len;
+		// printf("read_len =========== %ld \n",blknum);
+		// printf("file->read_size =========== %ld\n",file->read_size);
 
 		/* if the page has not been modified since last backup, skip it */
+		/**
+		 * 如果有数据文件、无效LSN、LSN小进行下次循环
+		*/
 		if (!prev_file_not_found && lsn && !XLogRecPtrIsInvalid(page_lsn) && page_lsn < *lsn)
+			printf("continue ================================= ");
 			continue;
 
 		/*
@@ -391,11 +425,14 @@ backup_data_file(const char *from_root,
 		 */
 		memset(page.data + header.hole_offset, 0, header.hole_length);
 		if (data_checksum_enabled)
-			((PageHeader) page.data)->pd_checksum =
-										pg_checksum_page((char *) page.data,
-											 blknum + RELSEG_SIZE * segno);
+			((PageHeader)page.data)->pd_checksum =
+				pg_checksum_page((char *)page.data,
+								 blknum + RELSEG_SIZE * segno);
 
 		upper_offset = header.hole_offset + header.hole_length;
+		printf("header.hole_offset === %d \n", header.hole_offset);
+		printf("header.hole_length === %d \n",header.hole_length);
+		printf("upper_offset === %d \n",upper_offset);
 		upper_length = BLCKSZ - upper_offset;
 
 #ifdef HAVE_LIBZ
@@ -413,6 +450,9 @@ backup_data_file(const char *from_root,
 #endif
 		{
 			/* write data page excluding hole */
+			/**
+			 *数据文件的写入
+			 */
 			if (fwrite(&header, 1, sizeof(header), out) != sizeof(header) ||
 				fwrite(page.data, 1, header.hole_offset, out) != header.hole_offset ||
 				fwrite(page.data + upper_offset, 1, upper_length, out) != upper_length)
@@ -422,9 +462,9 @@ backup_data_file(const char *from_root,
 				fclose(in);
 				fclose(out);
 				ereport(ERROR,
-					(errcode(ERROR_SYSTEM),
-					 errmsg("could not write at block %u of \"%s\": %s",
-						blknum, to_path, strerror(errno_tmp))));
+						(errcode(ERROR_SYSTEM),
+						 errmsg("could not write at block %u of \"%s\": %s",
+								blknum, to_path, strerror(errno_tmp))));
 			}
 
 			/* update CRC */
@@ -434,7 +474,6 @@ backup_data_file(const char *from_root,
 
 			file->write_size += sizeof(header) + read_len - header.hole_length;
 		}
-
 	}
 	errno_tmp = errno;
 	if (!feof(in))
@@ -442,8 +481,8 @@ backup_data_file(const char *from_root,
 		fclose(in);
 		fclose(out);
 		ereport(ERROR,
-			(errcode(ERROR_SYSTEM),
-			 errmsg("could not read backup mode file \"%s\": %s", file->path, strerror(errno_tmp))));
+				(errcode(ERROR_SYSTEM),
+				 errmsg("could not read backup mode file \"%s\": %s", file->path, strerror(errno_tmp))));
 	}
 
 	/*
@@ -468,7 +507,7 @@ backup_data_file(const char *from_root,
 #ifdef HAVE_LIBZ
 			if (compress)
 				doDeflate(&z, sizeof(header), sizeof(outbuf), &header, outbuf,
-					in, out, &crc, &file->write_size, Z_NO_FLUSH);
+						  in, out, &crc, &file->write_size, Z_NO_FLUSH);
 			else
 #endif
 			{
@@ -479,9 +518,9 @@ backup_data_file(const char *from_root,
 					fclose(in);
 					fclose(out);
 					ereport(ERROR,
-						(errcode(ERROR_SYSTEM),
-						 errmsg("could not write at block %u of \"%s\": %s",
-							blknum, to_path, strerror(errno_tmp))));
+							(errcode(ERROR_SYSTEM),
+							 errmsg("could not write at block %u of \"%s\": %s",
+									blknum, to_path, strerror(errno_tmp))));
 				}
 				PGRMAN_COMP_CRC32(crc, &header, sizeof(header));
 				file->write_size += sizeof(header);
@@ -492,7 +531,7 @@ backup_data_file(const char *from_root,
 #ifdef HAVE_LIBZ
 		if (compress)
 			doDeflate(&z, read_len, sizeof(outbuf), page.data, outbuf, in, out,
-				&crc, &file->write_size, Z_NO_FLUSH);
+					  &crc, &file->write_size, Z_NO_FLUSH);
 		else
 #endif
 		{
@@ -503,9 +542,9 @@ backup_data_file(const char *from_root,
 				fclose(in);
 				fclose(out);
 				ereport(ERROR,
-					(errcode(ERROR_SYSTEM),
-					 errmsg("could not write at block %u of \"%s\": %s",
-						blknum, to_path, strerror(errno_tmp))));
+						(errcode(ERROR_SYSTEM),
+						 errmsg("could not write at block %u of \"%s\": %s",
+								blknum, to_path, strerror(errno_tmp))));
 			}
 
 			PGRMAN_COMP_CRC32(crc, page.data, read_len);
@@ -537,16 +576,19 @@ backup_data_file(const char *from_root,
 		else
 #endif
 		{
-		    if (fwrite(&header, 1, sizeof(header), out) != sizeof(header))
+				/**
+				 * 变动部分的写入
+				*/
+			if (fwrite(&header, 1, sizeof(header), out) != sizeof(header))
 			{
 				int errno_tmp = errno;
 				/* oops */
 				fclose(in);
 				fclose(out);
 				ereport(ERROR,
-					(errcode(ERROR_SYSTEM),
-					 errmsg("could not write at block %u of \"%s\": %s to put endpoint",
-						blknum, to_path, strerror(errno_tmp))));
+						(errcode(ERROR_SYSTEM),
+						 errmsg("could not write at block %u of \"%s\": %s to put endpoint",
+								blknum, to_path, strerror(errno_tmp))));
 			}
 			PGRMAN_COMP_CRC32(crc, &header, sizeof(header));
 
@@ -576,8 +618,8 @@ backup_data_file(const char *from_root,
 			fclose(in);
 			fclose(out);
 			ereport(ERROR,
-				(errcode(ERROR_SYSTEM),
-				 errmsg("could not close compression stream: %s", z.msg)));
+					(errcode(ERROR_SYSTEM),
+					 errmsg("could not close compression stream: %s", z.msg)));
 		}
 	}
 #endif
@@ -593,8 +635,8 @@ backup_data_file(const char *from_root,
 		fclose(in);
 		fclose(out);
 		ereport(ERROR,
-			(errcode(ERROR_SYSTEM),
-			 errmsg("could not change mode of \"%s\": %s", file->path, strerror(errno_tmp))));
+				(errcode(ERROR_SYSTEM),
+				 errmsg("could not change mode of \"%s\": %s", file->path, strerror(errno_tmp))));
 	}
 
 	fclose(in);
@@ -613,8 +655,8 @@ backup_data_file(const char *from_root,
 	{
 		if (remove(to_path) == -1)
 			ereport(ERROR,
-				(errcode(ERROR_SYSTEM),
-				 errmsg("could not remove file \"%s\": %s", to_path, strerror(errno))));
+					(errcode(ERROR_SYSTEM),
+					 errmsg("could not remove file \"%s\": %s", to_path, strerror(errno))));
 		return false;
 	}
 
@@ -629,30 +671,29 @@ backup_data_file(const char *from_root,
  * Restore files in the from_root directory to the to_root directory with
  * same relative path.
  */
-void
-restore_data_file(const char *from_root,
-				  const char *to_root,
-				  pgFile *file,
-				  bool compress)
+void restore_data_file(const char *from_root,
+					   const char *to_root,
+					   pgFile *file,
+					   bool compress)
 {
-	char				to_path[MAXPGPATH];
-	FILE			   *in;
-	FILE			   *out;
-	BackupPageHeader	header;
-	BlockNumber			blknum;
+	char to_path[MAXPGPATH];
+	FILE *in;
+	FILE *out;
+	BackupPageHeader header;
+	BlockNumber blknum;
 #ifdef HAVE_LIBZ
-	z_stream			z;
-	int					status;
-	char				inbuf[zlibInSize];
-	pg_crc32c			crc;
-	size_t				read_size;
+	z_stream z;
+	int status;
+	char inbuf[zlibInSize];
+	pg_crc32c crc;
+	size_t read_size;
 #endif
 
 	/* If the file is not a datafile, just copy it. */
 	if (!file->is_datafile)
 	{
 		copy_file(from_root, to_root, file,
-			compress ? DECOMPRESSION : NO_COMPRESSION);
+				  compress ? DECOMPRESSION : NO_COMPRESSION);
 		return;
 	}
 
@@ -661,9 +702,9 @@ restore_data_file(const char *from_root,
 	if (in == NULL)
 	{
 		ereport(ERROR,
-			(errcode(ERROR_SYSTEM),
-			 errmsg("could not open backup file \"%s\": %s", file->path,
-				strerror(errno))));
+				(errcode(ERROR_SYSTEM),
+				 errmsg("could not open backup file \"%s\": %s", file->path,
+						strerror(errno))));
 	}
 
 	/*
@@ -683,9 +724,9 @@ restore_data_file(const char *from_root,
 
 		fclose(in);
 		ereport(ERROR,
-			(errcode(ERROR_SYSTEM),
-			 errmsg("could not open restore target file \"%s\": %s",
-				to_path, strerror(errno_tmp))));
+				(errcode(ERROR_SYSTEM),
+				 errmsg("could not open restore target file \"%s\": %s",
+						to_path, strerror(errno_tmp))));
 	}
 
 #ifdef HAVE_LIBZ
@@ -699,26 +740,26 @@ restore_data_file(const char *from_root,
 
 		if (inflateInit(&z) != Z_OK)
 			ereport(ERROR,
-				(errcode(ERROR_SYSTEM),
-				 errmsg("could not initialize compression library: %s", z.msg)));
+					(errcode(ERROR_SYSTEM),
+					 errmsg("could not initialize compression library: %s", z.msg)));
 		PGRMAN_INIT_CRC32(crc);
 		read_size = 0;
 	}
 #endif
 
-	for (blknum = 0; ; blknum++)
+	for (blknum = 0;; blknum++)
 	{
-		size_t		read_len;
-		DataPage	page;		/* used as read buffer */
-		int			upper_offset;
-		int			upper_length;
+		size_t read_len;
+		DataPage page; /* used as read buffer */
+		int upper_offset;
+		int upper_length;
 
 		/* read BackupPageHeader */
 #ifdef HAVE_LIBZ
 		if (compress)
 		{
 			status = doInflate(&z, sizeof(inbuf), sizeof(header), inbuf,
-						&header, in, out, &crc, &read_size);
+							   &header, in, out, &crc, &read_size);
 
 			/* when the stream ends, proceed to next block unless the block is
 			 * flagged as endpoint, which needs an additional truncation process.*/
@@ -726,15 +767,15 @@ restore_data_file(const char *from_root,
 			{
 				if (z.avail_out != sizeof(header))
 					ereport(ERROR,
-						(errcode(ERROR_CORRUPTED),
-						 errmsg("backup has a broken header")));
+							(errcode(ERROR_CORRUPTED),
+							 errmsg("backup has a broken header")));
 				break;
 			}
 
 			if (z.avail_out != 0)
 				ereport(ERROR,
-					(errcode(ERROR_SYSTEM),
-					 errmsg("could not read block %u of \"%s\"", blknum, file->path)));
+						(errcode(ERROR_SYSTEM),
+						 errmsg("could not read block %u of \"%s\"", blknum, file->path)));
 		}
 		else
 #endif
@@ -745,42 +786,42 @@ restore_data_file(const char *from_root,
 				int errno_tmp = errno;
 
 				if (read_len == 0 && feof(in))
-					break;		/* EOF found */
+					break; /* EOF found */
 				else if (read_len != 0 && feof(in))
 					ereport(ERROR,
-						(errcode(ERROR_CORRUPTED),
-						 errmsg("odd size page found at block %u of \"%s\"",
-							blknum, file->path)));
+							(errcode(ERROR_CORRUPTED),
+							 errmsg("odd size page found at block %u of \"%s\"",
+									blknum, file->path)));
 				else
 					ereport(ERROR,
-						(errcode(ERROR_SYSTEM),
-						 errmsg("could not read block %u of \"%s\": %s",
-							blknum, file->path, strerror(errno_tmp))));
+							(errcode(ERROR_SYSTEM),
+							 errmsg("could not read block %u of \"%s\": %s",
+									blknum, file->path, strerror(errno_tmp))));
 			}
 		}
 		if (header.endpoint)
 		{
-		/*
-		 * endpoint means there are no pages any more at the point of
-		 * incremental backup, so truncate it.
-		 * This process is necessary for preventing unexpected deleted
-		 * data comeback which happens when a vacuum shrink relations
-		 * between a full backup and an incremental backup.
-		 */
-		    blknum = header.block;
+			/*
+			 * endpoint means there are no pages any more at the point of
+			 * incremental backup, so truncate it.
+			 * This process is necessary for preventing unexpected deleted
+			 * data comeback which happens when a vacuum shrink relations
+			 * between a full backup and an incremental backup.
+			 */
+			blknum = header.block;
 			elog(DEBUG, "truncating file. %s blknum: %d", to_path, blknum);
-			if(truncate(to_path, (blknum - 1) * BLCKSZ) == -1)
+			if (truncate(to_path, (blknum - 1) * BLCKSZ) == -1)
 				ereport(ERROR,
-					(errcode(ERROR_SYSTEM),
-					 errmsg("could not truncate file \"%s\": %s", to_path, strerror(errno))));
+						(errcode(ERROR_SYSTEM),
+						 errmsg("could not truncate file \"%s\": %s", to_path, strerror(errno))));
 			break;
 		}
 
 		if (header.block < blknum || header.hole_offset > BLCKSZ ||
-			(int) header.hole_offset + (int) header.hole_length > BLCKSZ)
+			(int)header.hole_offset + (int)header.hole_length > BLCKSZ)
 			ereport(ERROR,
-				(errcode(ERROR_CORRUPTED),
-				 errmsg("backup is broken at block %u", blknum)));
+					(errcode(ERROR_CORRUPTED),
+					 errmsg("backup is broken at block %u", blknum)));
 
 		upper_offset = header.hole_offset + header.hole_length;
 		upper_length = BLCKSZ - upper_offset;
@@ -797,21 +838,21 @@ restore_data_file(const char *from_root,
 			if (header.hole_offset > 0)
 			{
 				doInflate(&z, sizeof(inbuf), header.hole_offset, inbuf,
-					page.data, in, out, &crc, &read_size);
+						  page.data, in, out, &crc, &read_size);
 				if (z.avail_out != 0)
 					ereport(ERROR,
-						(errcode(ERROR_SYSTEM),
-						 errmsg("could not read block %u of \"%s\"", blknum, file->path)));
+							(errcode(ERROR_SYSTEM),
+							 errmsg("could not read block %u of \"%s\"", blknum, file->path)));
 			}
 
 			if (upper_length > 0)
 			{
 				doInflate(&z, sizeof(inbuf), upper_length, inbuf,
-					page.data + upper_offset, in, out, &crc, &read_size);
+						  page.data + upper_offset, in, out, &crc, &read_size);
 				if (z.avail_out != 0)
 					ereport(ERROR,
-						(errcode(ERROR_SYSTEM),
-						 errmsg("could not read block %u of \"%s\"", blknum, file->path)));
+							(errcode(ERROR_SYSTEM),
+							 errmsg("could not read block %u of \"%s\"", blknum, file->path)));
 			}
 		}
 		else
@@ -820,9 +861,9 @@ restore_data_file(const char *from_root,
 			if (fread(page.data, 1, header.hole_offset, in) != header.hole_offset ||
 				fread(page.data + upper_offset, 1, upper_length, in) != upper_length)
 				ereport(ERROR,
-					(errcode(ERROR_SYSTEM),
-					 errmsg("could not read block %u of \"%s\": %s",
-						blknum, file->path, strerror(errno))));
+						(errcode(ERROR_SYSTEM),
+						 errmsg("could not read block %u of \"%s\": %s",
+								blknum, file->path, strerror(errno))));
 		}
 
 		/*
@@ -832,9 +873,9 @@ restore_data_file(const char *from_root,
 		blknum = header.block;
 		if (fseek(out, blknum * BLCKSZ, SEEK_SET) < 0)
 			ereport(ERROR,
-				(errcode(ERROR_SYSTEM),
-				 errmsg("could not seek block %u of \"%s\": %s",
-					blknum, to_path, strerror(errno))));
+					(errcode(ERROR_SYSTEM),
+					 errmsg("could not seek block %u of \"%s\": %s",
+							blknum, to_path, strerror(errno))));
 
 		/*
 		 * Note that a valid checksum was already set by backup_data_file(),
@@ -843,16 +884,16 @@ restore_data_file(const char *from_root,
 		 */
 		if (fwrite(page.data, 1, sizeof(page), out) != sizeof(page))
 			ereport(ERROR,
-				(errcode(ERROR_SYSTEM),
-				 errmsg("could not write block %u of \"%s\": %s",
-					blknum, file->path, strerror(errno))));
+					(errcode(ERROR_SYSTEM),
+					 errmsg("could not write block %u of \"%s\": %s",
+							blknum, file->path, strerror(errno))));
 	}
 
 #ifdef HAVE_LIBZ
 	if (compress && inflateEnd(&z) != Z_OK)
 		ereport(ERROR,
-			(errcode(ERROR_SYSTEM),
-			 errmsg("could not close compression stream: %s", z.msg)));
+				(errcode(ERROR_SYSTEM),
+				 errmsg("could not close compression stream: %s", z.msg)));
 #endif
 
 	/* update file permission */
@@ -862,32 +903,32 @@ restore_data_file(const char *from_root,
 		fclose(in);
 		fclose(out);
 		ereport(ERROR,
-			(errcode(ERROR_SYSTEM),
-			 errmsg("could not change mode of \"%s\": %s", to_path,
-				strerror(errno_tmp))));
+				(errcode(ERROR_SYSTEM),
+				 errmsg("could not change mode of \"%s\": %s", to_path,
+						strerror(errno_tmp))));
 	}
 
 	fclose(in);
 	fclose(out);
 }
 
-bool
-copy_file(const char *from_root, const char *to_root, pgFile *file,
-	CompressionMode mode)
+/*数据文件拷贝*/
+bool copy_file(const char *from_root, const char *to_root, pgFile *file,
+			   CompressionMode mode)
 {
-	char		to_path[MAXPGPATH];
-	FILE	   *in;
-	FILE	   *out;
-	size_t		read_len = 0;
-	int			errno_tmp;
-	char		buf[8192];
-	struct stat	st;
-	pg_crc32c	crc;
+	char to_path[MAXPGPATH];
+	FILE *in;
+	FILE *out;
+	size_t read_len = 0;
+	int errno_tmp;
+	char buf[8192];
+	struct stat st;
+	pg_crc32c crc;
 #ifdef HAVE_LIBZ
-	z_stream	z;
-	int			status;
-	char		outbuf[zlibOutSize];
-	char		inbuf[zlibInSize];
+	z_stream z;
+	int status;
+	char outbuf[zlibOutSize];
+	char inbuf[zlibInSize];
 #endif
 	PGRMAN_INIT_CRC32(crc);
 
@@ -896,6 +937,7 @@ copy_file(const char *from_root, const char *to_root, pgFile *file,
 	file->write_size = 0;
 
 	/* open backup mode file for read */
+	// printf("backup source path =====******************* %s \n", file->path);
 	in = fopen(file->path, "r");
 	if (in == NULL)
 	{
@@ -907,9 +949,9 @@ copy_file(const char *from_root, const char *to_root, pgFile *file,
 			return false;
 
 		ereport(ERROR,
-			(errcode(ERROR_SYSTEM),
-			 errmsg("could not open source file \"%s\": %s", file->path,
-				strerror(errno))));
+				(errcode(ERROR_SYSTEM),
+				 errmsg("could not open source file \"%s\": %s", file->path,
+						strerror(errno))));
 	}
 
 	/* open backup file for write  */
@@ -917,16 +959,16 @@ copy_file(const char *from_root, const char *to_root, pgFile *file,
 		snprintf(to_path, lengthof(to_path), "%s/tmp", backup_path);
 	else
 		join_path_components(to_path, to_root, file->path + strlen(from_root) + 1);
-
+	// printf("copy file backup destination path =====******************* %s \n", to_path);
 	out = fopen(to_path, "w");
 	if (out == NULL)
 	{
 		int errno_tmp = errno;
 		fclose(in);
 		ereport(ERROR,
-			(errcode(ERROR_SYSTEM),
-			 errmsg("could not open destination file \"%s\": %s",
-				to_path, strerror(errno_tmp))));
+				(errcode(ERROR_SYSTEM),
+				 errmsg("could not open destination file \"%s\": %s",
+						to_path, strerror(errno_tmp))));
 	}
 
 	/* stat source file to change mode of destination file */
@@ -935,8 +977,8 @@ copy_file(const char *from_root, const char *to_root, pgFile *file,
 		fclose(in);
 		fclose(out);
 		ereport(ERROR,
-			(errcode(ERROR_SYSTEM),
-			 errmsg("could not execute stat \"%s\": %s", file->path, strerror(errno))));
+				(errcode(ERROR_SYSTEM),
+				 errmsg("could not execute stat \"%s\": %s", file->path, strerror(errno))));
 	}
 
 #ifdef HAVE_LIBZ
@@ -951,12 +993,12 @@ copy_file(const char *from_root, const char *to_root, pgFile *file,
 			fclose(in);
 			fclose(out);
 			ereport(ERROR,
-				(errcode(ERROR_SYSTEM),
-				 errmsg("could not initialize compression library: %s", z.msg)));
+					(errcode(ERROR_SYSTEM),
+					 errmsg("could not initialize compression library: %s", z.msg)));
 		}
 
 		z.avail_in = 0;
-		z.next_out = (void *) outbuf;
+		z.next_out = (void *)outbuf;
 		z.avail_out = zlibOutSize;
 	}
 	else if (mode == DECOMPRESSION)
@@ -968,8 +1010,8 @@ copy_file(const char *from_root, const char *to_root, pgFile *file,
 			fclose(in);
 			fclose(out);
 			ereport(ERROR,
-				(errcode(ERROR_SYSTEM),
-				 errmsg("could not  initialize compression library: %s", z.msg)));
+					(errcode(ERROR_SYSTEM),
+					 errmsg("could not  initialize compression library: %s", z.msg)));
 		}
 	}
 #endif
@@ -990,18 +1032,18 @@ copy_file(const char *from_root, const char *to_root, pgFile *file,
 		else if (mode == DECOMPRESSION)
 		{
 			status = doInflate(&z, sizeof(inbuf), sizeof(outbuf), inbuf, outbuf,
-						in, out, &crc, &file->read_size);
+							   in, out, &crc, &file->read_size);
 			if (fwrite(outbuf, 1, sizeof(outbuf) - z.avail_out, out) !=
-					sizeof(outbuf) - z.avail_out)
+				sizeof(outbuf) - z.avail_out)
 			{
 				errno_tmp = errno;
 				/* oops */
 				fclose(in);
 				fclose(out);
 				ereport(ERROR,
-					(errcode(ERROR_SYSTEM),
-					 errmsg("could not write to \"%s\": %s", to_path,
-						strerror(errno_tmp))));
+						(errcode(ERROR_SYSTEM),
+						 errmsg("could not write to \"%s\": %s", to_path,
+								strerror(errno_tmp))));
 			}
 
 			file->write_size += sizeof(outbuf) - z.avail_out;
@@ -1011,9 +1053,14 @@ copy_file(const char *from_root, const char *to_root, pgFile *file,
 		else
 #endif
 		{
+			/**
+			 *读取源数据到buf
+			 */
 			if ((read_len = fread(buf, 1, sizeof(buf), in)) != sizeof(buf))
 				break;
-
+			/**
+			 *从源数据写入out
+			 */
 			if (fwrite(buf, 1, read_len, out) != read_len)
 			{
 				errno_tmp = errno;
@@ -1021,9 +1068,9 @@ copy_file(const char *from_root, const char *to_root, pgFile *file,
 				fclose(in);
 				fclose(out);
 				ereport(ERROR,
-					(errcode(ERROR_SYSTEM),
-					 errmsg("could not write to \"%s\": %s", to_path,
-						strerror(errno_tmp))));
+						(errcode(ERROR_SYSTEM),
+						 errmsg("could not write to \"%s\": %s", to_path,
+								strerror(errno_tmp))));
 			}
 			/* update CRC */
 			PGRMAN_COMP_CRC32(crc, buf, read_len);
@@ -1038,9 +1085,9 @@ copy_file(const char *from_root, const char *to_root, pgFile *file,
 		fclose(in);
 		fclose(out);
 		ereport(ERROR,
-			(errcode(ERROR_SYSTEM),
-			 errmsg("could not read backup mode file \"%s\": %s",
-				file->path, strerror(errno_tmp))));
+				(errcode(ERROR_SYSTEM),
+				 errmsg("could not read backup mode file \"%s\": %s",
+						file->path, strerror(errno_tmp))));
 	}
 
 	/* copy odd part. */
@@ -1055,6 +1102,9 @@ copy_file(const char *from_root, const char *to_root, pgFile *file,
 		else
 #endif
 		{
+			/**
+			 *日志文件等的写入
+			 */
 			if (fwrite(buf, 1, read_len, out) != read_len)
 			{
 				errno_tmp = errno;
@@ -1062,9 +1112,9 @@ copy_file(const char *from_root, const char *to_root, pgFile *file,
 				fclose(in);
 				fclose(out);
 				ereport(ERROR,
-					(errcode(ERROR_SYSTEM),
-					 errmsg("could not write to \"%s\": %s", to_path,
-						strerror(errno_tmp))));
+						(errcode(ERROR_SYSTEM),
+						 errmsg("could not write to \"%s\": %s", to_path,
+								strerror(errno_tmp))));
 			}
 			/* update CRC */
 			PGRMAN_COMP_CRC32(crc, buf, read_len);
@@ -1091,8 +1141,8 @@ copy_file(const char *from_root, const char *to_root, pgFile *file,
 			fclose(in);
 			fclose(out);
 			ereport(ERROR,
-				(errcode(ERROR_SYSTEM),
-				 errmsg("could not close compression stream: %s", z.msg)));
+					(errcode(ERROR_SYSTEM),
+					 errmsg("could not close compression stream: %s", z.msg)));
 		}
 	}
 	else if (mode == DECOMPRESSION)
@@ -1102,8 +1152,8 @@ copy_file(const char *from_root, const char *to_root, pgFile *file,
 			fclose(in);
 			fclose(out);
 			ereport(ERROR,
-				(errcode(ERROR_SYSTEM),
-				 errmsg("could not close compression stream: %s", z.msg)));
+					(errcode(ERROR_SYSTEM),
+					 errmsg("could not close compression stream: %s", z.msg)));
 		}
 	}
 
@@ -1119,9 +1169,9 @@ copy_file(const char *from_root, const char *to_root, pgFile *file,
 		fclose(in);
 		fclose(out);
 		ereport(ERROR,
-			(errcode(ERROR_SYSTEM),
-			 errmsg("could not change mode of \"%s\": %s", to_path,
-				strerror(errno_tmp))));
+				(errcode(ERROR_SYSTEM),
+				 errmsg("could not change mode of \"%s\": %s", to_path,
+						strerror(errno_tmp))));
 	}
 
 	fclose(in);
@@ -1142,20 +1192,20 @@ copy_file(const char *from_root, const char *to_root, pgFile *file,
 pgFile *
 write_stop_backup_file(pgBackup *backup, const char *buf, int len, const char *file_name)
 {
-	FILE		   *fp;
-	char			dbpath[MAXPGPATH],
-					path[MAXPGPATH];
-	char			writebuf[1024];
-	struct stat		st;
-	pgFile		   *file;
-	pg_crc32c		crc;
+	FILE *fp;
+	char dbpath[MAXPGPATH],
+		path[MAXPGPATH];
+	char writebuf[1024];
+	struct stat st;
+	pgFile *file;
+	pg_crc32c crc;
 #ifdef HAVE_LIBZ
-	z_stream		z;
-	char			outbuf[zlibOutSize];
+	z_stream z;
+	char outbuf[zlibOutSize];
 #endif
-	size_t			write_size = 0;
-	int				write_len,
-					written_len = 0;
+	size_t write_size = 0;
+	int write_len,
+		written_len = 0;
 
 	pgBackupGetPath(backup, dbpath, lengthof(dbpath), DATABASE_DIR);
 	snprintf(path, sizeof(path), "%s/%s", dbpath, file_name);
@@ -1163,9 +1213,9 @@ write_stop_backup_file(pgBackup *backup, const char *buf, int len, const char *f
 	fp = fopen(path, "wt");
 	if (fp == NULL)
 		ereport(ERROR,
-			(errcode(ERROR_SYSTEM),
-			 errmsg("could not open \"%s\" to write: %s",
-					path, strerror(errno))));
+				(errcode(ERROR_SYSTEM),
+				 errmsg("could not open \"%s\" to write: %s",
+						path, strerror(errno))));
 
 	PGRMAN_INIT_CRC32(crc);
 
@@ -1180,12 +1230,12 @@ write_stop_backup_file(pgBackup *backup, const char *buf, int len, const char *f
 		{
 			fclose(fp);
 			ereport(ERROR,
-				(errcode(ERROR_SYSTEM),
-				 errmsg("could not initialize compression library: %s", z.msg)));
+					(errcode(ERROR_SYSTEM),
+					 errmsg("could not initialize compression library: %s", z.msg)));
 		}
 
 		z.avail_in = 0;
-		z.next_out = (void *) outbuf;
+		z.next_out = (void *)outbuf;
 		z.avail_out = zlibOutSize;
 	}
 #endif
@@ -1199,7 +1249,7 @@ write_stop_backup_file(pgBackup *backup, const char *buf, int len, const char *f
 
 #ifdef HAVE_LIBZ
 		if (backup->compress_data)
-			doDeflate(&z, write_len, sizeof(outbuf), (void *) writebuf, outbuf, NULL,
+			doDeflate(&z, write_len, sizeof(outbuf), (void *)writebuf, outbuf, NULL,
 					  fp, &crc, &write_size, Z_FINISH);
 		else
 #endif
@@ -1208,9 +1258,9 @@ write_stop_backup_file(pgBackup *backup, const char *buf, int len, const char *f
 			{
 				fclose(fp);
 				ereport(ERROR,
-					(errcode(ERROR_SYSTEM),
-					 errmsg("could not write to file \"%s\": %s",
-							path, strerror(errno))));
+						(errcode(ERROR_SYSTEM),
+						 errmsg("could not write to file \"%s\": %s",
+								path, strerror(errno))));
 			}
 
 			PGRMAN_COMP_CRC32(crc, writebuf, write_len);
@@ -1225,8 +1275,8 @@ write_stop_backup_file(pgBackup *backup, const char *buf, int len, const char *f
 		{
 			fclose(fp);
 			ereport(ERROR,
-				(errcode(ERROR_SYSTEM),
-				 errmsg("could not close compression stream: %s", z.msg)));
+					(errcode(ERROR_SYSTEM),
+					 errmsg("could not close compression stream: %s", z.msg)));
 		}
 	}
 #endif
@@ -1234,7 +1284,7 @@ write_stop_backup_file(pgBackup *backup, const char *buf, int len, const char *f
 	fclose(fp);
 	PGRMAN_FIN_CRC32(crc);
 
-	file = (pgFile *) pgut_malloc(offsetof(pgFile, path) + strlen(file_name) + 1);
+	file = (pgFile *)pgut_malloc(offsetof(pgFile, path) + strlen(file_name) + 1);
 
 	stat(path, &st);
 	file->mtime = st.st_mtime;
@@ -1245,7 +1295,7 @@ write_stop_backup_file(pgBackup *backup, const char *buf, int len, const char *f
 	file->crc = crc;
 	file->is_datafile = false;
 	file->linked = NULL;
-	strcpy(file->path, file_name);		/* enough buffer size guaranteed */
+	strcpy(file->path, file_name); /* enough buffer size guaranteed */
 
 	return file;
 }
@@ -1262,15 +1312,15 @@ write_stop_backup_file(pgBackup *backup, const char *buf, int len, const char *f
 static BlockNumber
 figure_out_segno(char *filepath)
 {
-	char   *filename;
-	int		segno = 0;
+	char *filename;
+	int segno = 0;
 
 	if ((filename = strrchr(filepath, '/')) != NULL)
 	{
-		int		scanned;
-		unsigned int	relfilenode = 0;
+		int scanned;
+		unsigned int relfilenode = 0;
 
-		scanned = sscanf((char *) filename + 1, "%u.%d", &relfilenode, &segno);
+		scanned = sscanf((char *)filename + 1, "%u.%d", &relfilenode, &segno);
 		Assert(scanned > 0);
 	}
 
@@ -1280,8 +1330,7 @@ figure_out_segno(char *filepath)
 /*
  * Return true if the path is a existing regular file.
  */
-bool
-fileExists(const char *path)
+bool fileExists(const char *path)
 {
 	struct stat buf;
 
@@ -1297,8 +1346,7 @@ fileExists(const char *path)
  * Return true if standby.signal file exists and
  * store the file path to the "path"
  */
-bool
-get_standby_signal_filepath(char *path, size_t size)
+bool get_standby_signal_filepath(char *path, size_t size)
 {
 	snprintf(path, size, "%s/standby.signal", pgdata);
 	make_native_path(path);

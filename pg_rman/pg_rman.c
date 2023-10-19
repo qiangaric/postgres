@@ -104,8 +104,7 @@ static pgut_option options[] =
 /*
  * Entry point of pg_rman command.
  */
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]){
 	const char *cmd = NULL;
 	const char *range1 = NULL;
 	const char *range2 = NULL;

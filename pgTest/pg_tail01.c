@@ -98,5 +98,7 @@ int main(void)
     itoa(xrecoff, sxxrecoff, 2);
     printf("LSN--integer       = %-20d     xrecoff--string = %-40s\n", xrecoff, sxxrecoff);
 
+    char lsn[20] = "1/89000028";
+    printf(" lsn== %d \n",lsn);
     return 0;
 }

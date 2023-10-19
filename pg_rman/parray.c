@@ -186,5 +186,14 @@ void parray_walk(parray *array, void (*action)(void *))
 void *
 parray_bsearch(parray *array, const void *key, int (*compare)(const void *, const void *))
 {
+	/**
+	 * C 库函数 void *bsearch(const void *key, const void *base, size_t nitems, size_t size, int (*compar)(const void *, const void *))
+	 * 对 nitems 对象的数组执行二分查找，base 指向进行查找的数组，key 指向要查找的元素，size 指定数组中每个元素的大小。
+	 * 数组的内容应根据 compar 所对应的比较函数升序排序。
+	 * 从&key
+	 * base -- 指向进行查找的数组的第一个对象的指针
+	 * nitems（元素个数）
+	 * size元素大小
+	 */
 	return bsearch(&key, array->data, array->used, sizeof(void *), compare);
 }
